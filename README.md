@@ -45,7 +45,7 @@ If you want to create a proxy dll, you can use the -p option on the original vul
 python3 DLLirant.py -p "C:\THEFULLPATH\VulnerableDLL.dll"
 ```
 
-## How it works (Python version but .NET is similar)
+## How it works
 
 The script will create an output directory in the same directory of DLLirant, copy the targeted binary to the output directory.
 
