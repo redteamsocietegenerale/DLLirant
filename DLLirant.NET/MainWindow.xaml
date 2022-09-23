@@ -1,0 +1,56 @@
+﻿<mah:MetroWindow x:Class="DLLirant.NET.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:local="clr-namespace:DLLirant.NET"
+        mc:Ignorable="d"
+        Title="DLLirant.NET" Height="450" Width="800" WindowStartupLocation="CenterScreen">
+    <Window.DataContext>
+        <local:LogsViewModel />
+    </Window.DataContext>
+    <mah:MetroWindow.LeftWindowCommands>
+        <mah:WindowCommands>
+            <Button ToolTip="Open up the GitHub site" Click="Button_Click_1">
+                <iconPacks:PackIconUnicons Width="22" Height="22" Kind="Github" />
+            </Button>
+        </mah:WindowCommands>
+    </mah:MetroWindow.LeftWindowCommands>
+    <mah:MetroWindow.RightWindowCommands>
+        <mah:WindowCommands>
+            <Button Click="Button_Click" ToolTip="Select your PE file">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconUnicons Width="22" Height="22" VerticalAlignment="Center" Kind="FileImport" />
+                            <TextBlock Margin="5 0 0 0" VerticalAlignment="Center" Text="Select PE File" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+            <TextBox x:Name="TextBoxProxyDLLName" Text="Enter your proxy DLL name or a full path to use an existing DLL..." Visibility="Collapsed" PreviewMouseDown="TextBoxProxyDLLName_PreviewMouseDown" />
+            <Button x:Name="ButtonStart" IsEnabled="False" ToolTip="Analyze the binary automatically to find DLL Search Order Hijackings or Proxying your dll" Click="ButtonStart_Click">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconUnicons Width="22" Height="22" VerticalAlignment="Center" Kind="Play" />
+                            <TextBlock Margin="5 0 0 0" VerticalAlignment="Center" Text="Find DLL Hijackings" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+        </mah:WindowCommands>
+    </mah:MetroWindow.RightWindowCommands>
+    <Grid Background="Black">
+        <Image Source="background.png" Stretch="Fill" Height="{Binding ActualHeight, ElementName=ItemsContainer}" VerticalAlignment="Top" />
+        <ListBox ItemsSource="{Binding Logs}" HorizontalContentAlignment="Stretch" Background="Transparent" Foreground="White">
+            <ListBox.Resources>
+                <Style TargetType="{x:Type ListBoxItem}">
+                    <Setter Property="Background" Value="Transparent" />
+                </Style>
+            </ListBox.Resources>
+        </ListBox>
+    </Grid>
+</mah:MetroWindow>
