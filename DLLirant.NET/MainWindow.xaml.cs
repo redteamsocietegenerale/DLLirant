@@ -159,7 +159,7 @@ namespace DLLirant.NET
                     bool isExcluded = false;
                     foreach (string exclude in dllExcludes)
                     {
-                        if (func.DLL.ToLower().Contains(exclude))
+                        if (func.DLL.ToLower().Contains(exclude.ToLower()))
                         {
                             isExcluded = true;
                             break;
