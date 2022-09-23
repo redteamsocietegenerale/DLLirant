@@ -51,7 +51,7 @@ The script will create an output directory in the same directory of DLLirant, co
 
 Via the PeNet library, the script will extract the dll names required by the binary, and test each imports functions available one by one by compilate a custom DLL with the required exported functions.
 
-If a function required by the binary is executed, the custom DLL will create a `C:\\DLLirant\\output.txt` file and display a MessageBox to be sure that a DLL Hijacking is possible.
+If a function required by the binary is executed, the custom DLL will create a `C:\DLLirant\output.txt` file and display a MessageBox to be sure that a DLL Hijacking is possible.
 
 A `DLLirant-results.txt` will be also created in the DLLirant directory with all potential DLL Hijacking available.
 
