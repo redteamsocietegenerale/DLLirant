@@ -20,7 +20,17 @@
     </mah:MetroWindow.LeftWindowCommands>
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands>
-            <Button Click="Button_Click" ToolTip="Select your PE file">
+            <Button Click="Button_Click_2" ToolTip="DLL Proxying">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconUnicons Width="22" Height="22" VerticalAlignment="Center" Kind="FileMedicalAlt" />
+                            <TextBlock Margin="5 0 0 0" VerticalAlignment="Center" Text="DLL Proxying" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+            <Button Click="Button_Click" ToolTip="Select your targeted PE file">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -30,7 +40,6 @@
                     </DataTemplate>
                 </Button.ContentTemplate>
             </Button>
-            <TextBox x:Name="TextBoxProxyDLLName" Text="Enter your proxy DLL name or a full path to use an existing DLL..." Visibility="Collapsed" PreviewMouseDown="TextBoxProxyDLLName_PreviewMouseDown" />
             <Button x:Name="ButtonStart" IsEnabled="False" ToolTip="Analyze the binary automatically to find DLL Search Order Hijackings or Proxying your dll" Click="ButtonStart_Click">
                 <Button.ContentTemplate>
                     <DataTemplate>

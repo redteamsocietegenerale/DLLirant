@@ -8,9 +8,18 @@ namespace DLLirant.NET.Classes
 {
     internal class CodeGenerator
     {
-        public void GenerateDLL(string dllmain, List<string> importedFunctions = null)
+        public enum TypeDLLHijacking
         {
-            string code =
+            DLLSearchOrderHijacking,
+            OrdinalBased
+        }
+
+        public void GenerateDLL(string dllmain, List<string> functions = null, TypeDLLHijacking typeDLLHijacking = TypeDLLHijacking.DLLSearchOrderHijacking)
+        {
+            string code = string.Empty;
+            if (typeDLLHijacking == TypeDLLHijacking.DLLSearchOrderHijacking)
+            {
+                code =
                 "#include <windows.h>\r\n" +
                 "#include <stdio.h>\r\n\r\n" +
 
@@ -33,11 +42,38 @@ namespace DLLirant.NET.Classes
                         "\t\tcase DLL_THREAD_DETACH:\r\n" +
                         "\t\tcase DLL_PROCESS_DETACH:\r\n" +
                             "\t\t\tbreak;\r\n" +
-                    "\t}\r\n"+
-                    "\treturn TRUE;\r\n"+
+                    "\t}\r\n" +
+                    "\treturn TRUE;\r\n" +
                     "}\r\n\r\n";
-                
-            if (importedFunctions != null) { code += string.Join("\n", importedFunctions.ToArray()); };
+            }
+            else
+            {
+                code =
+                "#include <windows.h>\r\n" +
+                "#include <string>\r\n" +
+
+                "#pragma comment (lib, \"User32.lib\")\r\n\r\n" +
+                "int Main(int nb) {\r\n" +
+                    "\tstd::wstring message = std::to_wstring(nb);\r\n" +
+                    "\tMessageBoxW(0, message.data(), L\"DLL Hijack\", 0);\r\n" +
+                "\treturn 1;\r\n" +
+                "}\r\n\r\n" +
+                "BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)\r\n" +
+                "{\r\n" +
+                    "\tswitch (ul_reason_for_call) {\r\n" +
+                        "\t\tcase DLL_PROCESS_ATTACH:\r\n" +
+                            "\t\t\t" + dllmain + "\r\n" +
+                            "\t\t\tbreak;\r\n" +
+                        "\t\tcase DLL_THREAD_ATTACH:\r\n" +
+                        "\t\tcase DLL_THREAD_DETACH:\r\n" +
+                        "\t\tcase DLL_PROCESS_DETACH:\r\n" +
+                            "\t\t\tbreak;\r\n" +
+                    "\t}\r\n" +
+                    "\treturn TRUE;\r\n" +
+                    "}\r\n\r\n";
+            }
+
+            if (functions != null) { code += string.Join("\n", functions.ToArray()); };
 
             using (StreamWriter writer = new StreamWriter("output/dllmain.cpp"))
             {

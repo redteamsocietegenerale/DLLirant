@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Windows;
 
 namespace DLLirant.NET.Classes
 {
@@ -17,7 +19,9 @@ namespace DLLirant.NET.Classes
                 try
                 {
                     Directory.Delete(path, true);
-                } catch (UnauthorizedAccessException) { }
+                }
+                catch (UnauthorizedAccessException) { }
+                catch (IOException) { MessageBox.Show("ERROR: The output directory is used by another process"); }
         }
 
         public void CopyFile(string file)
@@ -35,10 +39,20 @@ namespace DLLirant.NET.Classes
         public void CopyFilesDirToDir(string dllname, string sourceDir, string targetDir)
         {
             if (Directory.Exists(sourceDir))
-                foreach (string file in Directory.GetFiles(sourceDir)) {
+                foreach (string file in Directory.GetFiles(sourceDir))
+                {
                     if (Path.GetFileName(file) != dllname)
                         File.Copy(file, Path.Combine(targetDir, Path.GetFileName(file)));
                 }
+        }
+
+        public void RecreateOutputDirectories(List<string> directories)
+        {
+            foreach (string dir in directories)
+            {
+                DeleteDirectory(dir);
+                CreateDirectory(dir);
+            }
         }
     }
 }

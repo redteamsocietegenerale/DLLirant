@@ -386,7 +386,14 @@
     </ApplicationDefinition>
     <Compile Include="Classes\CodeGenerator.cs" />
     <Compile Include="Classes\FileOperations.cs" />
+    <Compile Include="DLLProxying.xaml.cs">
+      <DependentUpon>DLLProxying.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewModel\LogsViewModel.cs" />
+    <Page Include="DLLProxying.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

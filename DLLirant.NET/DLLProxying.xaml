@@ -1,0 +1,43 @@
+﻿<UserControl x:Class="DLLirant.NET.DLLProxying"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DLLirant.NET"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="700">
+    <Grid Background="Black">
+        <Image Source="background.png" Stretch="Fill" Height="{Binding ActualHeight, ElementName=ItemsContainer}" VerticalAlignment="Top" />
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <StackPanel>
+                    <TextBlock Margin="5, 20, 5, 0" HorizontalAlignment="Center" Text="Generate a classic proxy DLL:" Foreground="White" FontWeight="Bold" FontStyle="Italic" FontFamily="Consolas" />
+                    <TextBlock Margin="10" Text="Select the targeted DLL:" Foreground="White" FontFamily="Consolas" />
+                    <Button Margin="5" Width="100" Content="Browse" Click="Button_Click" />
+                    <TextBlock Margin="10" Text="Targeted DLL:" Foreground="White" FontFamily="Consolas" />
+                    <TextBlock x:Name="TargetedDLL" Margin="10" Text="None" Foreground="White" FontFamily="Consolas" TextWrapping="Wrap" />
+                    <TextBlock Margin="10" Text="Path to use in the Proxy DLL (could be an absolute path like: C:\\Windows\\foobar.dll to use existing DLL or a relative path, a relative path will generate a second DLL, by default it will be 'proxy'):" Foreground="White" FontFamily="Consolas" TextWrapping="Wrap" />
+                    <TextBox x:Name="TextBoxPathProxyDLL" Margin="5" ToolTip="Write the path of the proxy DLL" Width="200" />
+                    <Button x:Name="ButtonGenerateClassicDLL" Margin="5" Width="200" Content="Generate" Click="Button_Click_2" IsEnabled="False" />
+                </StackPanel>
+            </Grid>
+            <Grid Grid.Column="1">
+                <StackPanel>
+                    <TextBlock Margin="5, 20, 5, 0" HorizontalAlignment="Center" Text="Generate an Ordinal based proxy DLL:" Foreground="White" FontWeight="Bold" FontStyle="Italic" FontFamily="Consolas" />
+                    <TextBlock Margin="10" Text="Name of the DLL to generate:" Foreground="White" FontFamily="Consolas" />
+                    <TextBox x:Name="TextBoxOrdinalDLLName" Margin="5" ToolTip="Write the name of the DLL that you want to generate" Width="200" />
+                    <TextBlock Margin="10" Text="Number of Ordinal to export:" Foreground="White" FontFamily="Consolas" />
+                    <DockPanel Margin="10" VerticalAlignment="Center" Width="300">
+                        <TextBox Text="{Binding ElementName=sliderValue, Path=Value, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" TextAlignment="Right" Width="50" />
+                        <Slider Maximum="10000" TickFrequency="1" IsSnapToTickEnabled="True" Name="sliderValue" />
+                    </DockPanel>
+                    <Button Margin="5" Width="200" Content="Generate" Click="Button_Click_3" />
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>
