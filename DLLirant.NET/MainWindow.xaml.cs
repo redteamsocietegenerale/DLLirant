@@ -148,8 +148,12 @@ namespace DLLirant.NET
                 } else
                 {
                     // Else we copy the original DLL, rename it with the name selected and copy the original dll.
-                    fileOp.CopyFile(SelectedBinary);
-                    fileOp.RenameFile($"output/{Path.GetFileName(SelectedBinary)}", $"output/{dllName}.dll");
+                    await Task.Run(() =>
+                    {
+                        fileOp.CopyFile(SelectedBinary);
+                        fileOp.RenameFile($"output/{Path.GetFileName(SelectedBinary)}", $"output/{dllName}.dll");
+                    });
+
                     logs.Add($"[+] {dllName}.dll (original DLL) and {Path.GetFileName(SelectedBinary)} (generated DLL with the original DLL name) proxying generated in output directory, copy the both files, it should work");
                 }
             } else {
@@ -180,22 +184,24 @@ namespace DLLirant.NET
                         await Task.Run(() =>
                         {
                             codeGenerator.GenerateDLL("CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)Main, NULL, NULL, NULL);");
+                            fileOp.CopyFile(SelectedBinary);
+                            fileOp.RenameFile("output/DLLirantDLL.dll", $"output/{func.DLL}");
                         });
 
-                        fileOp.CopyFile(SelectedBinary);
-                        fileOp.RenameFile("output/DLLirantDLL.dll", $"output/{func.DLL}");
-
                         logs.Add("==========================");
-                        if (codeGenerator.StartExecutable(Path.GetFileName(SelectedBinary)))
+                        await Task.Run(() =>
                         {
-                            logs.Add($"[+] DLL Search Order Hijacking found in the binary {Path.GetFileName(SelectedBinary)} with the DLL {func.DLL} !");
-                            using (StreamWriter sw = File.AppendText("DLLirant-results.txt"))
+                            if (codeGenerator.StartExecutable(Path.GetFileName(SelectedBinary)))
                             {
-                                sw.WriteLine($"[+] DLL SEARCH ORDER HIJACKING FOUND IN: {func.DLL}");
-                                sw.WriteLine($"BINARY: {SelectedBinary}");
-                                sw.WriteLine($"DllMain\n\n");
+                                uiContext.Send(x => logs.Add($"[+] DLL Search Order Hijacking found in the binary {Path.GetFileName(SelectedBinary)} with the DLL {func.DLL} !"), null);
+                                using (StreamWriter sw = File.AppendText("DLLirant-results.txt"))
+                                {
+                                    sw.WriteLine($"[+] DLL SEARCH ORDER HIJACKING FOUND IN: {func.DLL}");
+                                    sw.WriteLine($"BINARY: {SelectedBinary}");
+                                    sw.WriteLine($"DllMain\n\n");
+                                }
                             }
-                        }
+                        });
 
                         // Testing others functions.
                         List<string> importedFunctions = GetImportedFunctions(peFile, func.DLL);
@@ -218,26 +224,28 @@ namespace DLLirant.NET
                             await Task.Run(() =>
                             {
                                 codeGenerator.GenerateDLL(string.Empty, functionsToTest);
+                                fileOp.CopyFile(SelectedBinary);
+                                fileOp.RenameFile("output/DLLirantDLL.dll", $"output/{func.DLL}");
                             });
 
-                            fileOp.CopyFile(SelectedBinary);
-                            fileOp.RenameFile("output/DLLirantDLL.dll", $"output/{func.DLL}");
-
                             logs.Add("==========================");
-                            if (codeGenerator.StartExecutable(Path.GetFileName(SelectedBinary)))
+                            await Task.Run(() =>
                             {
-                                logs.Add($"[+] DLL Search Order Hijacking found in the binary {Path.GetFileName(SelectedBinary)} with the DLL {func.DLL} !");
-                                using (StreamWriter sw = File.AppendText("DLLirant-results.txt"))
+                                if (codeGenerator.StartExecutable(Path.GetFileName(SelectedBinary)))
                                 {
-                                    sw.WriteLine($"[+] DLL SEARCH ORDER HIJACKING FOUND IN: {func.DLL}\n");
-                                    sw.WriteLine($"BINARY: {SelectedBinary}");
-                                    foreach(string function in functionsToTest)
+                                    uiContext.Send(x => logs.Add($"[+] DLL Search Order Hijacking found in the binary {Path.GetFileName(SelectedBinary)} with the DLL {func.DLL} !"), null);
+                                    using (StreamWriter sw = File.AppendText("DLLirant-results.txt"))
                                     {
-                                        sw.WriteLine($"extern \"C\" __declspec(dllexport) void {function}() {{ Main(); }}");
+                                        sw.WriteLine($"[+] DLL SEARCH ORDER HIJACKING FOUND IN: {func.DLL}\n");
+                                        sw.WriteLine($"BINARY: {SelectedBinary}");
+                                        foreach (string function in functionsToTest)
+                                        {
+                                            sw.WriteLine($"extern \"C\" __declspec(dllexport) void {function}() {{ Main(); }}");
+                                        }
+                                        sw.WriteLine("\n");
                                     }
-                                    sw.WriteLine("\n");
                                 }
-                            }
+                            });
                         }
 
                         testedModules.Add(func.DLL);
