@@ -24,9 +24,11 @@ namespace DLLirant.NET
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "DLL files (*.dll)|*.dll";
-            openFileDialog.Multiselect = false;
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "DLL files (*.dll)|*.dll",
+                Multiselect = false
+            };
 
             if (openFileDialog.ShowDialog() == true)
             {
@@ -72,9 +74,9 @@ namespace DLLirant.NET
             }
             else
             {
-                fileOp.RenameFile("output/DLLirantDLL.dll", $"output/{Path.GetFileName(SelectedDLL)}");
                 fileOp.CopyFile(SelectedDLL);
                 fileOp.RenameFile($"output/{Path.GetFileName(SelectedDLL)}", $"output/{proxyPath}.dll");
+                fileOp.RenameFile("output/DLLirantDLL.dll", $"output/{Path.GetFileName(SelectedDLL)}");
             }
 
             button.Content = "Success!";

@@ -32,7 +32,7 @@
                     <TextBox x:Name="TextBoxOrdinalDLLName" Margin="5" ToolTip="Write the name of the DLL that you want to generate" Width="200" />
                     <TextBlock Margin="10" Text="Number of Ordinal to export:" Foreground="White" FontFamily="Consolas" />
                     <DockPanel Margin="10" VerticalAlignment="Center" Width="300">
-                        <TextBox Text="{Binding ElementName=sliderValue, Path=Value, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" TextAlignment="Right" Width="50" />
+                        <TextBox Text="{Binding ElementName=sliderValue, Path=Value, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" TextAlignment="Right" Width="45" Margin="10,0,0,0" />
                         <Slider Maximum="10000" TickFrequency="1" IsSnapToTickEnabled="True" Name="sliderValue" />
                     </DockPanel>
                     <Button Margin="5" Width="200" Content="Generate" Click="Button_Click_3" />
