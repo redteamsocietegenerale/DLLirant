@@ -92,7 +92,7 @@ namespace DLLirant.NET.Classes
             return false;
         }
 
-        private void ExecuteCommand(string path, string arguments = null)
+        private void ExecuteCommand(string path, string arguments = null, int maxRetries = 3)
         {
             Process process = new Process();
             ProcessStartInfo startInfo = new ProcessStartInfo();
@@ -103,7 +103,6 @@ namespace DLLirant.NET.Classes
             startInfo.WorkingDirectory = $"{Directory.GetCurrentDirectory()}\\output";
             process.StartInfo = startInfo;
             process.Start();
-            int maxRetries = 3;
             while (!process.HasExited)
             {
                 process.WaitForExit(2000);
