@@ -71,7 +71,7 @@
                     <RowDefinition Height="3.5*" />
                     <RowDefinition />
                 </Grid.RowDefinitions>
-                <ListBox x:Name="ListBoxExcludes" Grid.Row="0" ItemsSource="{Binding ExcludesDLLs}" HorizontalContentAlignment="Stretch" Background="Transparent" Foreground="White">
+                <ListBox x:Name="ListBoxExcludes" Grid.Row="0" ItemsSource="{Binding ExcludesDLLs}" HorizontalContentAlignment="Right" Background="Transparent" Foreground="White">
                     <ListBox.Resources>
                         <Style TargetType="{x:Type ListBoxItem}">
                             <Setter Property="Background" Value="Transparent" />

@@ -125,7 +125,7 @@ namespace DLLirant.NET
 
         private void ButtonAddExclude_Click(object sender, RoutedEventArgs e)
         {
-            if (TextBoxExcludeAdd.Text.Length > 0 && data.ExcludesDLLs.Contains(TextBoxExcludeAdd.Text.ToLower()))
+            if (TextBoxExcludeAdd.Text.Length > 0 && !data.ExcludesDLLs.Contains(TextBoxExcludeAdd.Text.ToLower()))
             {
                 data.ExcludesDLLs.Add(TextBoxExcludeAdd.Text.ToLower());
             }
