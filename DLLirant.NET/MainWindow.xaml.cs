@@ -8,7 +8,6 @@ using DLLirant.NET.Classes;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Linq;
-using System;
 
 namespace DLLirant.NET
 {
@@ -100,16 +99,7 @@ namespace DLLirant.NET
                     if(isDllHijackingFound)
                     {
                         data.Logs.Add($"[+] DLL Search Order Hijacking found in the binary {Path.GetFileName(peAnalyser.SelectedBinaryPath)} with the DLL {module} !");
-                        using (StreamWriter sw = File.AppendText("DLLirant-results.txt"))
-                        {
-                            sw.WriteLine($"[+] DLL SEARCH ORDER HIJACKING FOUND IN: {module}\n");
-                            sw.WriteLine($"BINARY: {peAnalyser.SelectedBinaryPath}");
-                            foreach (string function in functionsToTest)
-                            {
-                                sw.WriteLine($"extern \"C\" __declspec(dllexport) void {function}() {{ Main(); }}");
-                            }
-                            sw.WriteLine("\n");
-                        }
+                        fileOp.SaveDllHijackingLogs("DLLirant-results.txt", module, peAnalyser.SelectedBinaryPath, functionsToTest);
                     }
                 }
             }

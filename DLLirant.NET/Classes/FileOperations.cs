@@ -54,5 +54,19 @@ namespace DLLirant.NET.Classes
                 CreateDirectory(dir);
             }
         }
+
+        public void SaveDllHijackingLogs(string outputfile, string module, string pefile, List<string> functions)
+        {
+            using (StreamWriter sw = File.AppendText(outputfile))
+            {
+                sw.WriteLine($"[+] DLL SEARCH ORDER HIJACKING FOUND IN: {module}\n");
+                sw.WriteLine($"BINARY: {pefile}");
+                foreach (string function in functions)
+                {
+                    sw.WriteLine($"extern \"C\" __declspec(dllexport) void {function}() {{ Main(); }}");
+                }
+                sw.WriteLine("\n");
+            }
+        }
     }
 }
