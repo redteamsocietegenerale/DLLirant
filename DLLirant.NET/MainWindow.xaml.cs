@@ -127,7 +127,8 @@ namespace DLLirant.NET
         {
             if (TextBoxExcludeAdd.Text.Length > 0 && !data.ExcludesDLLs.Contains(TextBoxExcludeAdd.Text.ToLower()))
             {
-                data.ExcludesDLLs.Add(TextBoxExcludeAdd.Text.ToLower());
+                string text = TextBoxExcludeAdd.Text.ToLower().Replace(" ", string.Empty);
+                data.ExcludesDLLs.Add(text);
             }
         }
 
