@@ -133,6 +133,10 @@ namespace DLLirant.NET.Classes
                 Process proc = Process.GetProcessById(pid);
                 if (!proc.HasExited) proc.Kill();
             }
+            catch(System.ComponentModel.Win32Exception)
+            {
+                // Access Denied.
+            }
             catch (ArgumentException)
             {
                 // Process already exited.
