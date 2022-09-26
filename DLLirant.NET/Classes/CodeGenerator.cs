@@ -103,8 +103,16 @@ namespace DLLirant.NET.Classes
             startInfo.WorkingDirectory = $"{Directory.GetCurrentDirectory()}\\output";
             process.StartInfo = startInfo;
             process.Start();
-            process.WaitForExit(10000);
-            KillProcessAndChildrens(process.Id);
+            int maxRetries = 3;
+            while (!process.HasExited)
+            {
+                process.WaitForExit(2000);
+                maxRetries--;
+                if (maxRetries <= 0)
+                {
+                    KillProcessAndChildrens(process.Id);
+                }
+            }
         }
 
         private static void KillProcessAndChildrens(int pid)
