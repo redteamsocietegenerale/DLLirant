@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="700">
     <Grid Background="Black">
-        <Image Source="background.png" Stretch="Fill" Height="{Binding ActualHeight, ElementName=ItemsContainer}" VerticalAlignment="Top" />
+        <Image Source="background2.png" Stretch="Fill" Height="{Binding ActualHeight, ElementName=ItemsContainer}" VerticalAlignment="Top" />
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
