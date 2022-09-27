@@ -4,7 +4,6 @@ DLLirant is a tool to automatize the DLL Hijacking and DLL Proxying researches o
 
 ![alt text](https://raw.githubusercontent.com/redteamsocietegenerale/DLLirant/main/screenshot.png)
 ![alt text](https://raw.githubusercontent.com/redteamsocietegenerale/DLLirant/main/screenshot2.png)
-![alt text](https://raw.githubusercontent.com/redteamsocietegenerale/DLLirant/main/screenshot3.png)
 
 ## Live Demo
 
