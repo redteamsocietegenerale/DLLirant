@@ -68,5 +68,27 @@ namespace DLLirant.NET.Classes
                 sw.WriteLine("\n");
             }
         }
+
+        public void SaveDllLivePaths(string outputfile, string pefile, List<string> modules)
+        {
+            using (StreamWriter sw = File.AppendText(outputfile))
+            {
+                sw.WriteLine($"[+] POTENTIAL DLL SIDE LOADING IN: {pefile}\n");
+                foreach (string module in modules)
+                {
+                    sw.WriteLine(module);
+                }
+                sw.WriteLine("\n");
+            }
+        }
+
+        public void SaveCppCode(string outputfile, string code)
+        {
+            CreateDirectory("dll-hijack-codes-found");
+            using (StreamWriter sw = File.CreateText($"dll-hijack-codes-found\\{outputfile}"))
+            {
+                sw.WriteLine(code);
+            }
+        }
     }
 }

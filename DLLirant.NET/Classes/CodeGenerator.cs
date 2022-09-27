@@ -8,6 +8,8 @@ namespace DLLirant.NET.Classes
 {
     internal class CodeGenerator
     {
+        public string CppCode;
+
         public enum TypeDLLHijacking
         {
             DLLSearchOrderHijacking,
@@ -16,10 +18,10 @@ namespace DLLirant.NET.Classes
 
         public void GenerateDLL(string dllmain, List<string> functions = null, TypeDLLHijacking typeDLLHijacking = TypeDLLHijacking.DLLSearchOrderHijacking)
         {
-            string code = string.Empty;
+            CppCode = string.Empty;
             if (typeDLLHijacking == TypeDLLHijacking.DLLSearchOrderHijacking)
             {
-                code =
+                CppCode =
                 "#include <windows.h>\r\n" +
                 "#include <stdio.h>\r\n\r\n" +
 
@@ -48,7 +50,7 @@ namespace DLLirant.NET.Classes
             }
             else
             {
-                code =
+                CppCode =
                 "#include <windows.h>\r\n" +
                 "#include <string>\r\n" +
 
@@ -73,11 +75,11 @@ namespace DLLirant.NET.Classes
                     "}\r\n\r\n";
             }
 
-            if (functions != null) { code += string.Join("\n", functions.ToArray()); };
+            if (functions != null) { CppCode += string.Join("\n", functions.ToArray()); };
 
             using (StreamWriter writer = new StreamWriter("output/dllmain.cpp"))
             {
-                writer.WriteLine(code);
+                writer.WriteLine(CppCode);
             }
 
             ExecuteCommand("cmd.exe", "/C clang++.exe dllmain.cpp -o DLLirantDLL.dll -shared");
@@ -105,7 +107,7 @@ namespace DLLirant.NET.Classes
             process.Start();
             while (!process.HasExited)
             {
-                process.WaitForExit(2000);
+                process.WaitForExit(3000);
                 maxRetries--;
                 if (maxRetries <= 0)
                 {

@@ -7,7 +7,7 @@
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:local="clr-namespace:DLLirant.NET"
         mc:Ignorable="d"
-        Title="DLLirant.NET" Height="450" Width="800" WindowStartupLocation="CenterScreen">
+        Title="DLLirant.NET" Height="720" Width="1280" WindowStartupLocation="CenterScreen">
     <Window.DataContext>
         <local:DataContextViewModel />
     </Window.DataContext>

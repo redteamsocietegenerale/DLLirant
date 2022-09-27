@@ -12,20 +12,12 @@ namespace DLLirant.NET.Classes
         public PEAnalyser(string path)
         {
             SelectedBinaryPath = path;
+            peFile = new PeFile(SelectedBinaryPath);
         }
 
         public List<string> GetPEInformations()
         {
-            peFile = new PeFile(SelectedBinaryPath);
             List<string> peInformations = new List<string>();
-            if (peFile.IsSigned)
-            {
-                peInformations.Add("Is signed: Yes");
-            }
-            else
-            {
-                peInformations.Add("Is signed: No");
-            }
 
             if (peFile.HasValidSignature)
             {
@@ -53,6 +45,18 @@ namespace DLLirant.NET.Classes
             peInformations.Add($"SHA1: {peFile.Sha1}");
             peInformations.Add($"SHA256: {peFile.Sha256}");
             return peInformations;
+        }
+
+        public string CheckIfSigned()
+        {
+            if (peFile.IsSigned)
+            {
+                return "Is signed: Yes";
+            }
+            else
+            {
+                return "Is signed: No";
+            }
         }
 
         public List<string> GetModules(List<string> excludesList)
