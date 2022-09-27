@@ -78,7 +78,7 @@
                         </Style>
                     </ListBox.Resources>
                 </ListBox>
-                <StackPanel Grid.Row="1" Margin="0,5,0,5">
+                <StackPanel Grid.Row="1" Margin="0,5,0,5" VerticalAlignment="Bottom">
                     <TextBlock Text="Add a DLL in the exclusion list:" Foreground="White" TextAlignment="Center" FontFamily="Consolas" />
                     <Grid Margin="0,5,0,0">
                         <Grid.ColumnDefinitions>
