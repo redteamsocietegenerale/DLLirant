@@ -7,20 +7,30 @@
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:local="clr-namespace:DLLirant.NET"
         mc:Ignorable="d"
-        Title="DLLirant.NET" Height="450" Width="800" WindowStartupLocation="CenterScreen">
+        Title="DLLirant.NET" Height="720" Width="1280" WindowStartupLocation="CenterScreen">
     <Window.DataContext>
-        <local:LogsViewModel />
+        <local:DataContextViewModel />
     </Window.DataContext>
     <mah:MetroWindow.LeftWindowCommands>
         <mah:WindowCommands>
-            <Button ToolTip="Open up the GitHub site" Click="Button_Click_1">
+            <Button Click="ButtonOpenGitHub_Click" ToolTip="Open up the GitHub site">
                 <iconPacks:PackIconUnicons Width="22" Height="22" Kind="Github" />
             </Button>
         </mah:WindowCommands>
     </mah:MetroWindow.LeftWindowCommands>
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands>
-            <Button Click="Button_Click" ToolTip="Select your PE file">
+            <Button Click="ButtonDllProxying_Click" ToolTip="DLL Proxying">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconUnicons Width="22" Height="22" VerticalAlignment="Center" Kind="FileMedicalAlt" />
+                            <TextBlock Margin="5 0 0 0" VerticalAlignment="Center" Text="DLL Proxying" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+            <Button Click="ButtonSelectBinary_Click" ToolTip="Select your targeted PE file">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -30,7 +40,6 @@
                     </DataTemplate>
                 </Button.ContentTemplate>
             </Button>
-            <TextBox x:Name="TextBoxProxyDLLName" Text="Enter your proxy DLL name or a full path to use an existing DLL..." Visibility="Collapsed" PreviewMouseDown="TextBoxProxyDLLName_PreviewMouseDown" />
             <Button x:Name="ButtonStart" IsEnabled="False" ToolTip="Analyze the binary automatically to find DLL Search Order Hijackings or Proxying your dll" Click="ButtonStart_Click">
                 <Button.ContentTemplate>
                     <DataTemplate>
@@ -45,12 +54,43 @@
     </mah:MetroWindow.RightWindowCommands>
     <Grid Background="Black">
         <Image Source="background.png" Stretch="Fill" Height="{Binding ActualHeight, ElementName=ItemsContainer}" VerticalAlignment="Top" />
-        <ListBox ItemsSource="{Binding Logs}" HorizontalContentAlignment="Stretch" Background="Transparent" Foreground="White">
-            <ListBox.Resources>
-                <Style TargetType="{x:Type ListBoxItem}">
-                    <Setter Property="Background" Value="Transparent" />
-                </Style>
-            </ListBox.Resources>
-        </ListBox>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <ListBox Grid.Column="0" ItemsSource="{Binding Logs}" HorizontalContentAlignment="Stretch" Background="Transparent" Foreground="White">
+                <ListBox.Resources>
+                    <Style TargetType="{x:Type ListBoxItem}">
+                        <Setter Property="Background" Value="Transparent" />
+                    </Style>
+                </ListBox.Resources>
+            </ListBox>
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="3.5*" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <ListBox x:Name="ListBoxExcludes" Grid.Row="0" ItemsSource="{Binding ExcludesDLLs}" HorizontalContentAlignment="Right" Background="Transparent" Foreground="White">
+                    <ListBox.Resources>
+                        <Style TargetType="{x:Type ListBoxItem}">
+                            <Setter Property="Background" Value="Transparent" />
+                        </Style>
+                    </ListBox.Resources>
+                </ListBox>
+                <StackPanel Grid.Row="1" Margin="0,5,0,5" VerticalAlignment="Bottom">
+                    <TextBlock Text="Add a DLL in the exclusion list:" Foreground="White" TextAlignment="Center" FontFamily="Consolas" />
+                    <Grid Margin="0,5,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="TextBoxExcludeAdd" Grid.Column="0" Margin="5,0,5,0" Background="Transparent" />
+                        <Button Grid.Column="1" Content="ADD" Foreground="White" Margin="5,0,5,0" Background="Transparent" Click="ButtonAddExclude_Click" />
+                    </Grid>
+                    <Button Content="Delete Selected DLL" Margin="5" Background="Transparent" Click="ButtonDeleteExclude_Click" />
+                </StackPanel>
+            </Grid>
+        </Grid>
     </Grid>
 </mah:MetroWindow>
