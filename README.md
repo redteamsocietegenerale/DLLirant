@@ -11,7 +11,7 @@ DLLirant is a tool to automatize the DLL Hijacking and DLL Proxying researches o
 
 ## How to install
 
-* Install LLVM for Windows: https://llvm.org/builds/
+* Install LLVM for Windows x64 (LLVM-version-win64.exe): https://github.com/llvm/llvm-project/releases
 * Do not forget to check the "Add LLVM to the system PATH for current user" during the installation.
 
 ## How to use
