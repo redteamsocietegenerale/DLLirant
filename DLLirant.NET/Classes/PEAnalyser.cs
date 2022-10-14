@@ -86,7 +86,7 @@ namespace DLLirant.NET.Classes
             List<string> importedFunctions = new List<string>();
             foreach (PeNet.Header.Pe.ImportFunction func in peFile.ImportedFunctions)
             {
-                if(func.DLL == moduleName && func.Name != null)
+                if(func.DLL == moduleName && func.Name != null && !func.Name.StartsWith("?"))
                 {
                     importedFunctions.Add(func.Name);
                 }

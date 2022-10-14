@@ -10,6 +10,9 @@ using System.Diagnostics;
 using System.Threading;
 using System;
 using System.Linq;
+using Microsoft.Diagnostics.Tracing.Parsers;
+using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
+using Microsoft.Diagnostics.Tracing.Session;
 
 namespace DLLirant.NET
 {
@@ -79,7 +82,7 @@ namespace DLLirant.NET
             CodeGenerator codeGenerator = new CodeGenerator();
 
             if (isStarted) {
-                if (MessageBox.Show("Do you want to test dll hijackings? If you click on NO, the application will go to live debugging to recover potential files that could be hijacked.", "Test dll hijackings?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                if (MessageBox.Show("Do you want to test dll hijackings?", "Test dll hijackings?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                 {
                     // Get Modules.
                     List<string> modules = peAnalyser.GetModules(data.ExcludesDLLs.ToList());
@@ -156,48 +159,56 @@ namespace DLLirant.NET
             // Testing the binary in live debugging to find DLL hijackings via absolute path
             if (isStarted)
             {
-                DisplayPEFileInformations();
-                data.Logs.Add($"Starting the original pefile {Path.GetFileName(peAnalyser.SelectedBinaryPath)} to find live modules hijackings...");
-                await Task.Run(() =>
+                if (MessageBox.Show("Do you want to test live debugging?", "Test live debugging?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                 {
-                    List<string> modulesList = new List<string>();
-                    Process process = new Process();
-                    ProcessStartInfo startInfo = new ProcessStartInfo
+                    DisplayPEFileInformations();
+                    data.Logs.Add($"Starting the original pefile {Path.GetFileName(peAnalyser.SelectedBinaryPath)} to find live modules hijackings...");
+                    await Task.Run(() =>
                     {
-                        WindowStyle = ProcessWindowStyle.Normal,
-                        FileName = peAnalyser.SelectedBinaryPath
-                    };
-                    process.StartInfo = startInfo;
-                    process.Start();
-
-                    while (!process.HasExited)
-                    {
-                        try
+                        List<string> modulesList = new List<string>();
+                        Process process = new Process();
+                        ProcessStartInfo startInfo = new ProcessStartInfo
                         {
-                            process.WaitForExit(2000);
-                            foreach (ProcessModule module in process.Modules)
+                            WindowStyle = ProcessWindowStyle.Normal,
+                            FileName = peAnalyser.SelectedBinaryPath
+                        };
+                        process.StartInfo = startInfo;
+                        process.Start();
+
+                        while (!process.HasExited)
+                        {
+                            try
                             {
-                                if (module.ModuleName != Path.GetFileName(peAnalyser.SelectedBinaryPath))
+                                process.WaitForExit(100);
+
+                                using (var kernelSession = new TraceEventSession(KernelTraceEventParser.KernelSessionName))
                                 {
-                                    if (!module.FileName.ToLower().StartsWith("c:\\windows\\system32") && !modulesList.Contains(module.FileName))
+                                    kernelSession.EnableKernelProvider(KernelTraceEventParser.Keywords.All);
+                                    kernelSession.Source.Kernel.FileIOCreate += ((FileIOCreateTraceData obj) =>
                                     {
-                                        PEAnalyser pe = new PEAnalyser(module.FileName);
-                                        uiContext.Send(x => data.Logs.Add($"MODULE: {module.FileName} - {pe.CheckIfSigned()}"), null);
-                                        modulesList.Add(module.FileName);
-                                    }
+                                        if (!data.Logs.Contains(obj.FileName) && !obj.FileName.ToLower().StartsWith("c:\\windows\\system32\\") && obj.FileName.ToLower().EndsWith(".dll"))
+                                        {
+                                            if (!File.Exists(obj.FileName))
+                                            {
+                                                uiContext.Send(x => data.Logs.Add(obj.FileName), null);
+                                            }
+                                        }
+                                    });
+
+                                    kernelSession.Source.Process();
                                 }
                             }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                            }
                         }
-                        catch (Exception ex)
+                        if (modulesList.Count > 0)
                         {
-                            Console.WriteLine(ex.Message);
+                            fileOp.SaveDllLivePaths("live-paths-found.txt", peAnalyser.SelectedBinaryPath, modulesList);
                         }
-                    }
-                    if (modulesList.Count > 0)
-                    {
-                        fileOp.SaveDllLivePaths("live-paths-found.txt", peAnalyser.SelectedBinaryPath, modulesList);
-                    }
-                });
+                    });
+                }
             }
             data.Logs.Add("Done.");
             isStarted = false;
