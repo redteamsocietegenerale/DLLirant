@@ -24,6 +24,8 @@ namespace DLLirant.NET
         readonly DataContextViewModel data = new DataContextViewModel();
         
         PEAnalyser peAnalyser;
+        Process process = new Process();
+        List<string> modulesList = new List<string>();
 
         bool isStarted = false;
 
@@ -66,6 +68,10 @@ namespace DLLirant.NET
 
         private async void ButtonStart_Click(object sender, RoutedEventArgs e)
         {
+            SynchronizationContext uiContext = SynchronizationContext.Current;
+            FileOperations fileOp = new FileOperations();
+            CodeGenerator codeGenerator = new CodeGenerator();
+
             Button button = (Button)sender;
             TextBlock textBlock = button.FindChild<TextBlock>();
             if (!isStarted)
@@ -73,16 +79,18 @@ namespace DLLirant.NET
                 textBlock.Text = "Stop";
                 isStarted = true;
             } else {
+                process.Kill();
+                if (modulesList.Count > 0)
+                {
+                    fileOp.SaveDllLivePaths("name-not-found.txt", peAnalyser.SelectedBinaryPath, modulesList);
+                }
+                modulesList.Clear();
                 textBlock.Text = "Find DLL Hijackings";
                 isStarted = false;
             }
 
-            SynchronizationContext uiContext = SynchronizationContext.Current;
-            FileOperations fileOp = new FileOperations();
-            CodeGenerator codeGenerator = new CodeGenerator();
-
             if (isStarted) {
-                if (MessageBox.Show("Do you want to test dll hijackings?", "Test dll hijackings?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                if (MessageBox.Show("Do you want to test dll search order hijackings?", "Test dll search order hijackings?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                 {
                     // Get Modules.
                     List<string> modules = peAnalyser.GetModules(data.ExcludesDLLs.ToList());
@@ -159,14 +167,12 @@ namespace DLLirant.NET
             // Testing the binary in live debugging to find DLL hijackings via absolute path
             if (isStarted)
             {
-                if (MessageBox.Show("Do you want to test live debugging?", "Test live debugging?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                if (MessageBox.Show("Do you want to test to find NAME_NOT_FOUND dll search order hijackings?", "Test live debugging?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                 {
                     DisplayPEFileInformations();
-                    data.Logs.Add($"Starting the original pefile {Path.GetFileName(peAnalyser.SelectedBinaryPath)} to find live modules hijackings...");
+                    data.Logs.Add($"Starting the original pefile {Path.GetFileName(peAnalyser.SelectedBinaryPath)} to find NAME_NOT_FOUND dll search order hijackings (click on STOP to terminate the test)...");
                     await Task.Run(() =>
                     {
-                        List<string> modulesList = new List<string>();
-                        Process process = new Process();
                         ProcessStartInfo startInfo = new ProcessStartInfo
                         {
                             WindowStyle = ProcessWindowStyle.Normal,
@@ -175,41 +181,43 @@ namespace DLLirant.NET
                         process.StartInfo = startInfo;
                         process.Start();
 
+                        TraceEventSession kernelSession = null;
                         while (!process.HasExited)
                         {
                             try
                             {
                                 process.WaitForExit(100);
 
-                                using (var kernelSession = new TraceEventSession(KernelTraceEventParser.KernelSessionName))
+                                kernelSession = new TraceEventSession(KernelTraceEventParser.KernelSessionName);
+                                kernelSession.EnableKernelProvider(KernelTraceEventParser.Keywords.All);
+                                kernelSession.Source.Kernel.FileIOCreate += ((FileIOCreateTraceData obj) =>
                                 {
-                                    kernelSession.EnableKernelProvider(KernelTraceEventParser.Keywords.All);
-                                    kernelSession.Source.Kernel.FileIOCreate += ((FileIOCreateTraceData obj) =>
+                                    if (!data.Logs.Contains($"NAME_NOT_FOUND: {obj.FileName}") && !obj.FileName.ToLower().StartsWith("c:\\windows\\system32\\") && obj.FileName.ToLower().EndsWith(".dll"))
                                     {
-                                        if (!data.Logs.Contains(obj.FileName) && !obj.FileName.ToLower().StartsWith("c:\\windows\\system32\\") && obj.FileName.ToLower().EndsWith(".dll"))
+                                        if (!File.Exists(obj.FileName))
                                         {
-                                            if (!File.Exists(obj.FileName))
-                                            {
-                                                uiContext.Send(x => data.Logs.Add(obj.FileName), null);
-                                            }
+                                            uiContext.Send(x => data.Logs.Add($"NAME_NOT_FOUND: {obj.FileName}"), null);
+                                            modulesList.Add(obj.FileName);
                                         }
-                                    });
+                                    }
+                                });
 
-                                    kernelSession.Source.Process();
-                                }
+                                kernelSession.Source.Process();
                             }
                             catch (Exception ex)
                             {
                                 Console.WriteLine(ex.Message);
                             }
                         }
-                        if (modulesList.Count > 0)
+
+                        if (kernelSession != null)
                         {
-                            fileOp.SaveDllLivePaths("live-paths-found.txt", peAnalyser.SelectedBinaryPath, modulesList);
+                            kernelSession.Stop();
                         }
                     });
                 }
             }
+
             data.Logs.Add("Done.");
             isStarted = false;
             textBlock.Text = "Find DLL Hijackings";
