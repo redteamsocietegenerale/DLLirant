@@ -8,17 +8,15 @@ namespace DLLirant.NET.Classes
 {
     internal class CodeGenerator
     {
-        public string CppCode;
-
         public enum TypeDLLHijacking
         {
             DLLSearchOrderHijacking,
             OrdinalBased
         }
 
-        public void GenerateDLL(string dllmain, List<string> functions = null, TypeDLLHijacking typeDLLHijacking = TypeDLLHijacking.DLLSearchOrderHijacking)
+        public static string GenerateDLL(string dllmain, List<string> functions = null, TypeDLLHijacking typeDLLHijacking = TypeDLLHijacking.DLLSearchOrderHijacking)
         {
-            CppCode = string.Empty;
+            string CppCode = string.Empty;
             if (typeDLLHijacking == TypeDLLHijacking.DLLSearchOrderHijacking)
             {
                 CppCode =
@@ -83,9 +81,11 @@ namespace DLLirant.NET.Classes
             }
 
             ExecuteCommand("cmd.exe", "/C clang++.exe dllmain.cpp -o DLLirantDLL.dll -shared");
+
+            return CppCode;
         }
 
-        public bool StartExecutable(string path)
+        public static bool StartExecutable(string path)
         {
             ExecuteCommand(path);
 
@@ -94,7 +94,7 @@ namespace DLLirant.NET.Classes
             return false;
         }
 
-        private void ExecuteCommand(string path, string arguments = null, int maxRetries = 3)
+        private static void ExecuteCommand(string path, string arguments = null, int maxRetries = 3)
         {
             Process process = new Process();
             ProcessStartInfo startInfo = new ProcessStartInfo();
@@ -135,7 +135,7 @@ namespace DLLirant.NET.Classes
                 Process proc = Process.GetProcessById(pid);
                 if (!proc.HasExited) proc.Kill();
             }
-            catch(System.ComponentModel.Win32Exception)
+            catch (System.ComponentModel.Win32Exception)
             {
                 // Access Denied.
             }

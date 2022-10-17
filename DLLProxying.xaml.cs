@@ -48,10 +48,8 @@ namespace DLLirant.NET
             button.IsEnabled = false;
 
             PeFile peFile = new PeFile(SelectedDLL);
-            FileOperations fileOp = new FileOperations();
-            CodeGenerator codeGenerator = new CodeGenerator();
 
-            fileOp.RecreateOutputDirectories(new List<string> { "output/" });
+            FileOperations.RecreateDirectories(new List<string> { "output/" });
 
             List<string> exportedFunctions = new List<string>();
             string proxyPath = "proxy";
@@ -65,18 +63,18 @@ namespace DLLirant.NET
             }
             await Task.Run(() =>
             {
-                codeGenerator.GenerateDLL("Main();", exportedFunctions);
+                CodeGenerator.GenerateDLL("Main();", exportedFunctions);
             });
 
             if (proxyPath.StartsWith("C:"))
             {
-                fileOp.RenameFile("output/DLLirantDLL.dll", $"output/{Path.GetFileName(SelectedDLL)}");
+                FileOperations.RenameFile("output/DLLirantDLL.dll", $"output/{Path.GetFileName(SelectedDLL)}");
             }
             else
             {
-                fileOp.CopyFile(SelectedDLL);
-                fileOp.RenameFile($"output/{Path.GetFileName(SelectedDLL)}", $"output/{proxyPath}.dll");
-                fileOp.RenameFile("output/DLLirantDLL.dll", $"output/{Path.GetFileName(SelectedDLL)}");
+                FileOperations.CopyFileToDir(SelectedDLL, "output/");
+                FileOperations.RenameFile($"output/{Path.GetFileName(SelectedDLL)}", $"output/{proxyPath}.dll");
+                FileOperations.RenameFile("output/DLLirantDLL.dll", $"output/{Path.GetFileName(SelectedDLL)}");
             }
 
             button.Content = "Success!";
@@ -93,10 +91,8 @@ namespace DLLirant.NET
             Button button = (Button)sender;
             button.Content = "Generating...";
             button.IsEnabled = false;
-            FileOperations fileOp = new FileOperations();
-            CodeGenerator codeGenerator = new CodeGenerator();
 
-            fileOp.RecreateOutputDirectories(new List<string> { "output/" });
+            FileOperations.RecreateDirectories(new List<string> { "output/" });
 
             string dllName = TextBoxOrdinalDLLName.Text;
             List<string> exportedFunctions = new List<string>();
@@ -107,7 +103,7 @@ namespace DLLirant.NET
 
             await Task.Run(() =>
             {
-                codeGenerator.GenerateDLL(string.Empty, exportedFunctions, CodeGenerator.TypeDLLHijacking.OrdinalBased);
+                CodeGenerator.GenerateDLL(string.Empty, exportedFunctions, CodeGenerator.TypeDLLHijacking.OrdinalBased);
             });
             if (dllName.Length > 0)
             {
@@ -115,7 +111,7 @@ namespace DLLirant.NET
                 {
                     dllName = $"{dllName}.dll";
                 }
-                fileOp.RenameFile("output/DLLirantDLL.dll", $"output/{dllName}");
+                FileOperations.RenameFile("output/DLLirantDLL.dll", $"output/{dllName}");
             }
             button.Content = "Success!";
             await Task.Run(() =>
