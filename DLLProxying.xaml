@@ -17,12 +17,12 @@
                 <StackPanel>
                     <TextBlock Margin="5, 20, 5, 0" HorizontalAlignment="Center" Text="Generate a classic proxy DLL:" Foreground="White" FontWeight="Bold" FontStyle="Italic" FontFamily="Consolas" />
                     <TextBlock Margin="10" Text="Select the targeted DLL:" Foreground="White" FontFamily="Consolas" TextAlignment="Center" />
-                    <Button Margin="5" Width="100" Content="Browse" Click="Button_Click" />
+                    <Button Margin="5" Width="100" Content="Browse" Click="SelectedTargetedDLL_Button_Click" />
                     <TextBlock Margin="10" Text="Targeted DLL:" Foreground="White" FontFamily="Consolas" TextAlignment="Center" />
                     <TextBlock x:Name="TargetedDLL" Margin="10" Text="None" Foreground="White" FontFamily="Consolas" TextAlignment="Center" TextWrapping="Wrap" />
                     <TextBlock Margin="10" Text="Path to use in the Proxy DLL (by default it will be 'proxy' but you can use full path like 'C:\\Windows\\System32\\foobar.dll'):" Foreground="White" FontFamily="Consolas" TextAlignment="Center" TextWrapping="Wrap" />
                     <TextBox x:Name="TextBoxPathProxyDLL" Margin="5" ToolTip="Write the path of the proxy DLL" Width="200" />
-                    <Button x:Name="ButtonGenerateClassicDLL" Margin="5" Width="200" Content="Generate" Click="Button_Click_2" IsEnabled="False" />
+                    <Button x:Name="ButtonGenerateClassicDLL" Margin="5" Width="200" Content="Generate" Click="GenerateClassicDLL_Button_Click" IsEnabled="False" />
                 </StackPanel>
             </Grid>
             <Grid Grid.Column="1">
@@ -35,7 +35,7 @@
                         <TextBox Text="{Binding ElementName=sliderValue, Path=Value, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" TextAlignment="Right" Width="45" Margin="10,0,0,0" />
                         <Slider Maximum="10000" TickFrequency="1" IsSnapToTickEnabled="True" Name="sliderValue" />
                     </DockPanel>
-                    <Button Margin="5" Width="200" Content="Generate" Click="Button_Click_3" />
+                    <Button Margin="5" Width="200" Content="Generate" Click="GenerateOrdinalBasedDLL_Button_Click" />
                 </StackPanel>
             </Grid>
         </Grid>

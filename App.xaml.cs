@@ -9,7 +9,7 @@ using System.Windows;
 namespace DLLirant.NET
 {
     /// <summary>
-    /// Interaction logic for App.xaml
+    /// Logique d'interaction pour App.xaml
     /// </summary>
     public partial class App : Application
     {

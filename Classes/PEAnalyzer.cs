@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace DLLirant.NET.Classes
 {
-    internal class PEAnalyser
+    internal class PEAnalyzer
     {
         public string SelectedBinaryPath;
 
-        private PeFile peFile;
+        private readonly PeFile peFile;
 
-        public PEAnalyser(string path)
+        public PEAnalyzer(string path)
         {
             SelectedBinaryPath = path;
             peFile = new PeFile(SelectedBinaryPath);
@@ -86,12 +86,27 @@ namespace DLLirant.NET.Classes
             List<string> importedFunctions = new List<string>();
             foreach (PeNet.Header.Pe.ImportFunction func in peFile.ImportedFunctions)
             {
-                if(func.DLL == moduleName && func.Name != null)
+                if (func.DLL == moduleName && func.Name != null && !func.Name.StartsWith("?"))
                 {
                     importedFunctions.Add(func.Name);
                 }
             }
             return importedFunctions;
+        }
+
+        public string GetMD5()
+        {
+            return peFile.Md5;
+        }
+
+        public string GetSHA1()
+        {
+            return peFile.Sha1;
+        }
+
+        public string GetSHA256()
+        {
+            return peFile.Sha256;
         }
     }
 }

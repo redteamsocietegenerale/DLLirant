@@ -39,7 +39,8 @@ namespace DLLirant.NET
         }
 
         private ObservableCollection<string> logs;
-        public ObservableCollection<string> Logs {
+        public ObservableCollection<string> Logs
+        {
             get { return logs; }
             set
             {
