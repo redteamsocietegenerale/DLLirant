@@ -93,5 +93,20 @@ namespace DLLirant.NET.Classes
             }
             return importedFunctions;
         }
+
+        public string GetMD5()
+        {
+            return peFile.Md5;
+        }
+
+        public string GetSHA1()
+        {
+            return peFile.Sha1;
+        }
+
+        public string GetSHA256()
+        {
+            return peFile.Sha256;
+        }
     }
 }

@@ -15,6 +15,8 @@ namespace DLLirant.NET
     /// </summary>
     public partial class DLLProxying : UserControl
     {
+        CodeGenerator codeGenerator = new CodeGenerator();
+
         string SelectedDLL;
 
         public DLLProxying()
@@ -22,7 +24,7 @@ namespace DLLirant.NET
             InitializeComponent();
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void SelectedTargetedDLL_Button_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
@@ -41,7 +43,7 @@ namespace DLLirant.NET
             }
         }
 
-        private async void Button_Click_2(object sender, RoutedEventArgs e)
+        private async void GenerateClassicDLL_Button_Click(object sender, RoutedEventArgs e)
         {
             Button button = (Button)sender;
             button.Content = "Generating...";
@@ -61,10 +63,7 @@ namespace DLLirant.NET
             {
                 exportedFunctions.Add($"#pragma comment(linker,\"/export:{func.Name}={proxyPath}.{func.Name},@{func.Ordinal}\")");
             }
-            await Task.Run(() =>
-            {
-                CodeGenerator.GenerateDLL("Main();", exportedFunctions);
-            });
+            await Task.Run(() => { codeGenerator.GenerateDLL("Main();", exportedFunctions); });
 
             if (proxyPath.StartsWith("C:"))
             {
@@ -78,15 +77,12 @@ namespace DLLirant.NET
             }
 
             button.Content = "Success!";
-            await Task.Run(() =>
-            {
-                Thread.Sleep(2000);
-            });
+            await Task.Run(() => { Thread.Sleep(2000); });
             button.Content = "Generate";
             button.IsEnabled = true;
         }
 
-        private async void Button_Click_3(object sender, RoutedEventArgs e)
+        private async void GenerateOrdinalBasedDLL_Button_Click(object sender, RoutedEventArgs e)
         {
             Button button = (Button)sender;
             button.Content = "Generating...";
@@ -94,17 +90,15 @@ namespace DLLirant.NET
 
             FileOperations.RecreateDirectories(new List<string> { "output/" });
 
-            string dllName = TextBoxOrdinalDLLName.Text;
             List<string> exportedFunctions = new List<string>();
             for (int i = 0; i < sliderValue.Value; i++)
             {
                 exportedFunctions.Add($"extern \"C\" __declspec(dllexport) void DLLIrant{i}() {{ Main({i}); }};");
             }
 
-            await Task.Run(() =>
-            {
-                CodeGenerator.GenerateDLL(string.Empty, exportedFunctions, CodeGenerator.TypeDLLHijacking.OrdinalBased);
-            });
+            await Task.Run(() => { codeGenerator.GenerateDLL(string.Empty, exportedFunctions, CodeGenerator.TypeDLLHijacking.OrdinalBased); });
+
+            string dllName = TextBoxOrdinalDLLName.Text;
             if (dllName.Length > 0)
             {
                 if (!dllName.EndsWith(".dll"))
@@ -114,10 +108,7 @@ namespace DLLirant.NET
                 FileOperations.RenameFile("output/DLLirantDLL.dll", $"output/{dllName}");
             }
             button.Content = "Success!";
-            await Task.Run(() =>
-            {
-                Thread.Sleep(2000);
-            });
+            await Task.Run(() => { Thread.Sleep(2000); });
             button.Content = "Generate";
             button.IsEnabled = true;
         }

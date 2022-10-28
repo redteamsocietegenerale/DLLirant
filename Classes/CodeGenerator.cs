@@ -3,20 +3,26 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Management;
+using Microsoft.Diagnostics.Tracing.Session;
+using Microsoft.Diagnostics.Tracing.Parsers;
+using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
+using System.Threading;
 
 namespace DLLirant.NET.Classes
 {
     internal class CodeGenerator
     {
+        public Process process = new Process();
+
         public enum TypeDLLHijacking
         {
             DLLSearchOrderHijacking,
             OrdinalBased
         }
 
-        public static string GenerateDLL(string dllmain, List<string> functions = null, TypeDLLHijacking typeDLLHijacking = TypeDLLHijacking.DLLSearchOrderHijacking)
+        public string GenerateDLL(string dllmain, List<string> functions = null, TypeDLLHijacking typeDLLHijacking = TypeDLLHijacking.DLLSearchOrderHijacking)
         {
-            string CppCode = string.Empty;
+            string CppCode;
             if (typeDLLHijacking == TypeDLLHijacking.DLLSearchOrderHijacking)
             {
                 CppCode =
@@ -29,7 +35,6 @@ namespace DLLirant.NET.Classes
                     "\tfopen_s(&fptr, \"C:\\\\DLLirant\\\\output.txt\", \"w\");\r\n" +
                     "\tfprintf(fptr, \"%s\", \"It works !\");\r\n" +
                     "\tfclose(fptr);\r\n" +
-                    "\tMessageBoxW(0, L\"DLL Hijack found!\", L\"DLL Hijack\", 0);\r\n" +
                     "\treturn 1;\r\n" +
                 "}\r\n\r\n" +
                 "BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)\r\n" +
@@ -85,7 +90,7 @@ namespace DLLirant.NET.Classes
             return CppCode;
         }
 
-        public static bool StartExecutable(string path)
+        public bool StartExecutable(string path)
         {
             ExecuteCommand(path);
 
@@ -94,9 +99,8 @@ namespace DLLirant.NET.Classes
             return false;
         }
 
-        private static void ExecuteCommand(string path, string arguments = null, int maxRetries = 3)
+        private void ExecuteCommand(string path, string arguments = null, int maxRetries = 3)
         {
-            Process process = new Process();
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
             startInfo.FileName = path;
@@ -105,18 +109,24 @@ namespace DLLirant.NET.Classes
             startInfo.WorkingDirectory = $"{Directory.GetCurrentDirectory()}\\output";
             process.StartInfo = startInfo;
             process.Start();
-            while (!process.HasExited)
+            try
             {
-                process.WaitForExit(3000);
-                maxRetries--;
-                if (maxRetries <= 0)
+                while (!process.HasExited)
                 {
-                    KillProcessAndChildrens(process.Id);
+                    process.WaitForExit(3000);
+                    maxRetries--;
+                    if (maxRetries <= 0)
+                    {
+                        KillProcessAndChildrens(process.Id);
+                    }
                 }
+            } catch (InvalidOperationException)
+            {
+                process = new Process();
             }
         }
 
-        private static void KillProcessAndChildrens(int pid)
+        public void KillProcessAndChildrens(int pid)
         {
             ManagementObjectSearcher processSearcher = new ManagementObjectSearcher
               ("Select * From Win32_Process Where ParentProcessID=" + pid);
@@ -142,6 +152,60 @@ namespace DLLirant.NET.Classes
             catch (ArgumentException)
             {
                 // Process already exited.
+            }
+            catch (InvalidOperationException)
+            {
+                process = new Process();
+            }
+        }
+
+        public void StartingTraceEventSession(PEAnalyzer peAnalyzer, SynchronizationContext uiContext, DataContextViewModel data)
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                WindowStyle = ProcessWindowStyle.Normal,
+                FileName = peAnalyzer.SelectedBinaryPath
+            };
+
+            process.StartInfo = startInfo;
+            process.Start();
+
+            try
+            {
+                while (!process.HasExited)
+                {
+                    try
+                    {
+                        process.WaitForExit(100);
+
+                        using (TraceEventSession kernelSession = new TraceEventSession(KernelTraceEventParser.KernelSessionName))
+                        {
+                            kernelSession.EnableKernelProvider(KernelTraceEventParser.Keywords.All);
+                            kernelSession.Source.Kernel.FileIOCreate += ((FileIOCreateTraceData obj) =>
+                            {
+                                if (obj.ProcessName == process.ProcessName)
+                                {
+                                    if (!data.Logs.Contains($"NAME_NOT_FOUND: {obj.FileName}") && !obj.FileName.ToLower().StartsWith(Environment.SystemDirectory.ToLower()) && obj.FileName.ToLower().EndsWith(".dll"))
+                                    {
+                                        if (!File.Exists(obj.FileName))
+                                        {
+                                            uiContext.Send(x => data.Logs.Add($"NAME_NOT_FOUND: {obj.FileName}"), null);
+                                        }
+                                    }
+                                }
+                            });
+
+                            kernelSession.Source.Process();
+                        };
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                }
+            } catch (InvalidOperationException)
+            {
+                process = new Process();
             }
         }
     }

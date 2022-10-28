@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 
 namespace DLLirant.NET.Classes
 {
@@ -24,7 +20,9 @@ namespace DLLirant.NET.Classes
                     Directory.Delete(path, true);
                 }
                 catch (UnauthorizedAccessException) { }
-                catch (IOException) { MessageBox.Show("ERROR: The output directory is used by another process"); }
+                catch (IOException) {
+                    // The output directory is used by another process in specific cases, so we just ignore it
+                }
         }
 
         public static void CopyFileToDir(string file, string outputDir)
