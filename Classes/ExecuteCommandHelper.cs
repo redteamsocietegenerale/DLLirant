@@ -13,12 +13,16 @@ namespace DLLirant.Classes
 
         public void ExecuteCommand(string path, string arguments = null, int maxRetries = 3)
         {
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.FileName = path;
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                WindowStyle = ProcessWindowStyle.Hidden,
+                FileName = path,
+                WorkingDirectory = $"{Directory.GetCurrentDirectory()}\\output"
+            };
+
             if (arguments != null)
                 startInfo.Arguments = arguments;
-            startInfo.WorkingDirectory = $"{Directory.GetCurrentDirectory()}\\output";
+
             process.StartInfo = startInfo;
             process.Start();
             try
