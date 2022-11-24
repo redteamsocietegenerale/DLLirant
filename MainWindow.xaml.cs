@@ -185,8 +185,7 @@ namespace DLLirant
                 exportedFunctions.Add($"#pragma comment(linker,\"/export:{func.Name}={proxyPath}.{func.Name},@{func.Ordinal}\")");
             }
             await Task.Run(() => {
-                CodeGenerator codeGenerator = new CodeGenerator();
-                codeGenerator.GenerateDLL("Main();", exportedFunctions);
+                CodeGenerator.GenerateDLL("Main();", exportedFunctions);
 
                 ExecuteCommandHelper executeCommandHelper = new ExecuteCommandHelper();
                 executeCommandHelper.ExecuteCommand("cmd.exe", "/C clang++.exe dllmain.cpp -o DLLirantDLL.dll -shared");
@@ -224,8 +223,7 @@ namespace DLLirant
             }
 
             await Task.Run(() => {
-                CodeGenerator codeGenerator = new CodeGenerator();
-                codeGenerator.GenerateDLL(string.Empty, exportedFunctions, CodeGenerator.TypeDLLHijacking.OrdinalBased);
+                CodeGenerator.GenerateDLL(string.Empty, exportedFunctions, CodeGenerator.TypeDLLHijacking.OrdinalBased);
 
                 ExecuteCommandHelper executeCommandHelper = new ExecuteCommandHelper();
                 executeCommandHelper.ExecuteCommand("cmd.exe", "/C clang++.exe dllmain.cpp -o DLLirantDLL.dll -shared");

@@ -62,8 +62,7 @@ namespace DLLirant.Classes
         {
             uiContext.Send(x => data.LogsGrid1.Add("Testing DllMain..."), null);
 
-            CodeGenerator codeGenerator = new CodeGenerator();
-            string cppCode = codeGenerator.GenerateDLL("CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)Main, NULL, NULL, NULL);");
+            string cppCode = CodeGenerator.GenerateDLL("CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)Main, NULL, NULL, NULL);");
             
             ExecuteCommandHelper.ExecuteCommand("cmd.exe", "/C clang++.exe dllmain.cpp -o DLLirantDLL.dll -shared");
 
@@ -96,8 +95,7 @@ namespace DLLirant.Classes
                 }
                 uiContext.Send(x => data.LogsGrid1.Add("=========================="), null);
 
-                CodeGenerator codeGenerator = new CodeGenerator();
-                string cppCode = codeGenerator.GenerateDLL(string.Empty, functionsToTest);
+                string cppCode = CodeGenerator.GenerateDLL(string.Empty, functionsToTest);
 
                 ExecuteCommandHelper.ExecuteCommand("cmd.exe", "/C clang++.exe dllmain.cpp -o DLLirantDLL.dll -shared");
 

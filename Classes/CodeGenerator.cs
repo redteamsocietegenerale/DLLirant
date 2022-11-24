@@ -14,7 +14,7 @@ namespace DLLirant.Classes
             OrdinalBased
         }
 
-        public string GenerateDLL(string dllmain, List<string> functions = null, TypeDLLHijacking typeDLLHijacking = TypeDLLHijacking.DLLSearchOrderHijacking)
+        public static string GenerateDLL(string dllmain, List<string> functions = null, TypeDLLHijacking typeDLLHijacking = TypeDLLHijacking.DLLSearchOrderHijacking)
         {
             string CppCode = string.Empty;
             switch (typeDLLHijacking)
