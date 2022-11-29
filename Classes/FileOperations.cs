@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace DLLirant.NET.Classes
+namespace DLLirant.Classes
 {
     internal class FileOperations
     {
@@ -20,7 +20,8 @@ namespace DLLirant.NET.Classes
                     Directory.Delete(path, true);
                 }
                 catch (UnauthorizedAccessException) { }
-                catch (IOException) {
+                catch (IOException)
+                {
                     // The output directory is used by another process in specific cases, so we just ignore it
                 }
         }
@@ -39,7 +40,8 @@ namespace DLLirant.NET.Classes
 
         public static void CopyFilesDirToDir(string sourceDir, string targetDir, List<string> ignoreList = null)
         {
-            if (Directory.Exists(sourceDir)) {
+            if (Directory.Exists(sourceDir))
+            {
                 foreach (string ignoreFile in ignoreList)
                 {
                     foreach (string file in Directory.GetFiles(sourceDir))

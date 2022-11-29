@@ -1,7 +1,7 @@
 ﻿using PeNet;
 using System.Collections.Generic;
 
-namespace DLLirant.NET.Classes
+namespace DLLirant.Classes
 {
     internal class PEAnalyzer
     {

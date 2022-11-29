@@ -1,37 +1,41 @@
-﻿using System;
-using System.Windows;
-using System.Windows.Controls;
+﻿using DLLirant.Classes;
 using MahApps.Metro.Controls;
 using Microsoft.Win32;
-using System.IO;
+using PeNet;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
-using System.Linq;
-using DLLirant.NET.Classes;
-using CodeGenerator = DLLirant.NET.Classes.CodeGenerator;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
-namespace DLLirant.NET
+namespace DLLirant
 {
-    /// <summary>
-    /// Logique d'interaction pour MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : MetroWindow
     {
-        SynchronizationContext uiContext = SynchronizationContext.Current;
-        CodeGenerator codeGenerator = new CodeGenerator();
+        readonly SynchronizationContext uiContext = SynchronizationContext.Current;
         readonly DataContextViewModel data = new DataContextViewModel();
+        readonly KernelEventsParser kernelEventsParser = new KernelEventsParser();
+        readonly DLLHijackingsHelper dllHijackingsHelper = new DLLHijackingsHelper();
 
-        PEAnalyzer peAnalyzer;
+        private PEAnalyzer peAnalyzer;
 
-        bool isScanStarted = false;
+        string SelectedDLL;
 
         public MainWindow()
         {
             InitializeComponent();
             DataContext = data;
-            data.Logs.Clear();
+        }
+
+        private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            uiContext.Send(x => data.LogsGrid1.Clear(), null);
+            uiContext.Send(x => data.LogsGrid2.Clear(), null);
+            GridNameNotFoundMenu.Visibility = Visibility.Collapsed;
+            ButtonStartFindingDLLSearchOrderHijackings.IsEnabled = false;
         }
 
         private void ButtonOpenGitHub_Click(object sender, RoutedEventArgs e)
@@ -39,94 +43,89 @@ namespace DLLirant.NET
             Process.Start("https://github.com/redteamsocietegenerale/DLLirant");
         }
 
-        private void ButtonDllProxying_Click(object sender, RoutedEventArgs e)
+        private void TextBoxBinaryNameToTest_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            MetroWindow container = new MetroWindow();
-            DLLProxying contentControl = new DLLProxying();
-            container.Title = "DLL PROXYING";
-            container.Width = 700;
-            container.Height = 450;
-            container.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-            container.Content = contentControl;
-            container.Show();
-        }
-
-        private void ButtonSelectBinary_Click(object sender, RoutedEventArgs e)
-        {
-            Button button = (Button)sender;
-            TextBlock textBlock = button.FindChild<TextBlock>();
-
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "PE files (*.exe)|*.exe";
-            openFileDialog.Multiselect = false;
+            TextBox textBox = (TextBox)sender;
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "Exe Files (.exe)|*.exe",
+                Multiselect = false
+            };
 
             if (openFileDialog.ShowDialog() == true)
             {
-                textBlock.Text = Path.GetFileName(openFileDialog.FileName);
+                textBox.Text = Path.GetFileName(openFileDialog.FileName);
                 if (openFileDialog.FileName.EndsWith(".exe"))
                 {
-                    ButtonStart.IsEnabled = true;
+                    ButtonStartFindingDLLSearchOrderHijackings.IsEnabled = true;
                     peAnalyzer = new PEAnalyzer(openFileDialog.FileName);
                 }
             }
         }
 
-        private async void ButtonStart_Click(object sender, RoutedEventArgs e)
+        private async void ButtonStartFindingDLLSearchOrderHijackings_Click(object sender, RoutedEventArgs e)
         {
-            Button buttonStart = (Button)sender;
-            TextBlock buttonStartTextBlock = buttonStart.FindChild<TextBlock>();
+            Button button = (Button)sender;
+            TextBlock buttonTextBlock = button.FindChild<TextBlock>();
 
-            if (!isScanStarted)
+            if (!dllHijackingsHelper.ExecuteCommandHelper.IsStarted)
             {
-                buttonStartTextBlock.Text = "Stop";
-                isScanStarted = true;
+                buttonTextBlock.Text = "Stop";
+                dllHijackingsHelper.ExecuteCommandHelper.IsStarted = true;
+                await dllHijackingsHelper.FindSearchOrderHijackings(uiContext, data, peAnalyzer);
             } else
             {
-                try {
-                    codeGenerator.KillProcessAndChildrens(codeGenerator.process.Id);
-                } catch (InvalidOperationException)
-                {
-                    codeGenerator.process = new Process();
-                }
-                buttonStartTextBlock.Text = "Find DLL Hijackings";
-                isScanStarted = false;
+                dllHijackingsHelper.ExecuteCommandHelper.Stop();
+                buttonTextBlock.Text = "Start";
             }
+        }
 
-            if (isScanStarted)
+        private void ButtonStartMonitoringNameNotFound_Click(object sender, RoutedEventArgs e)
+        {
+            Button button = (Button)sender;
+            TextBlock buttonTextBlock = button.FindChild<TextBlock>();
+
+            if (!kernelEventsParser.IsStarted)
             {
-                if (MessageBox.Show("Do you want to test dll search order hijackings?", "Test dll search order hijackings?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                {
-                    // Get Modules.
-                    List<string> modules = peAnalyzer.GetModules(data.ExcludesDLLs.ToList());
-                    foreach (string module in modules)
-                    {
-                        if (!isScanStarted) { break; }
-
-                        // Display PE informations, create directories and import files from the import/ directory to the output/ dir.
-                        DisplayPEFileInformations();
-                        FileOperations.RecreateDirectories(new List<string> { "output/", "C:\\DLLirant\\" });
-                        FileOperations.CopyFilesDirToDir("import/", "output/", new List<string> { module });
-
-                        // Testing DllMain().
-                        await TestingDllMain(module);
-
-                        // Testing imported functions one by one.
-                        await TestingImportedFunctions(module);
-                    }
-                }
-
-                // Testing NAME_NOT_FOUND live debugging method via ETW events.
-                if (MessageBox.Show("Do you want to test to find NAME_NOT_FOUND dll search order hijackings?", "Test live debugging?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                {
-                    buttonStartTextBlock.Text = "Stop";
-                    isScanStarted = true;
-                    await TestingNameNotFoundLiveDebugging();
-                }
-
-                uiContext.Send(x => data.Logs.Add("Done."), null);
-                buttonStartTextBlock.Text = "Find DLL Hijackings";
-                isScanStarted = false;
+                TextBoxProcessNameToMonitor.IsEnabled = false;
+                buttonTextBlock.Text = "Stop";
+                kernelEventsParser.StartNameNotFoundTracing(uiContext, data, TextBoxProcessNameToMonitor.Text);
+            } else
+            {
+                TextBoxProcessNameToMonitor.IsEnabled = true;
+                buttonTextBlock.Text = "Start";
+                kernelEventsParser.StopNameNotFoundTracing();
             }
+        }
+
+        private void MainTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            TabControl tabControl = sender as TabControl;
+            switch (tabControl.SelectedIndex)
+            {
+                case 0:
+                    GridDLLSearchOrderHijackingMenu.Visibility = Visibility.Visible;
+                    GridNameNotFoundMenu.Visibility = Visibility.Collapsed;
+                    break;
+                case 1:
+                    GridNameNotFoundMenu.Visibility = Visibility.Visible;
+                    GridDLLSearchOrderHijackingMenu.Visibility = Visibility.Collapsed;
+                    break;
+                case 2:
+                    GridNameNotFoundMenu.Visibility = Visibility.Collapsed;
+                    GridDLLSearchOrderHijackingMenu.Visibility = Visibility.Collapsed;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void MenuItemOpenDirectory_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            try
+            {
+                Process.Start(Path.GetDirectoryName(ListBoxLogsGrid2.SelectedValue.ToString()));
+            } catch (System.ComponentModel.Win32Exception) { MessageBox.Show("The specified directory does not exists"); }
         }
 
         private void ButtonAddExclude_Click(object sender, RoutedEventArgs e)
@@ -138,7 +137,7 @@ namespace DLLirant.NET
             }
         }
 
-        private void ButtonDeleteExclude_Click(object sender, RoutedEventArgs e)
+        private void MenuItemDeleteExcludeDLL_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             if (ListBoxExcludes.SelectedValue != null)
             {
@@ -146,98 +145,103 @@ namespace DLLirant.NET
             }
         }
 
-        private void DisplayPEFileInformations()
+        private void SelectedTargetedDLL_Button_Click(object sender, RoutedEventArgs e)
         {
-            uiContext.Send(x => data.Logs.Clear(), null);
-            uiContext.Send(x => data.Logs.Add($"Process Name: {Path.GetFileName(peAnalyzer.SelectedBinaryPath)}"), null);
-            foreach (string info in peAnalyzer.GetPEInformations())
+            OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                uiContext.Send(x => data.Logs.Add(info), null);
-            }
-            uiContext.Send(x => data.Logs.Add("==========================================================="), null);
-        }
+                Filter = "DLL files (*.dll)|*.dll",
+                Multiselect = false
+            };
 
-        private async Task TestingDllMain(string module)
-        {
-            uiContext.Send(x => data.Logs.Add("Testing DllMain..."), null);
-
-            await Task.Run(() =>
+            if (openFileDialog.ShowDialog() == true)
             {
-                string cppCode = codeGenerator.GenerateDLL("CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)Main, NULL, NULL, NULL);");
-                FileOperations.CopyFileToDir(peAnalyzer.SelectedBinaryPath, "output/");
-                FileOperations.RenameFile("output/DLLirantDLL.dll", $"output/{module}");
-                bool isDllHijackingFound = codeGenerator.StartExecutable(Path.GetFileName(peAnalyzer.SelectedBinaryPath));
-                if (isDllHijackingFound)
+                SelectedDLL = openFileDialog.FileName;
+                if (SelectedDLL.EndsWith(".dll"))
                 {
-                    uiContext.Send(x => data.Logs.Add($"[+] DLL Search Order Hijacking found in the binary {Path.GetFileName(peAnalyzer.SelectedBinaryPath)} with the DLL {module} !"), null);
-                    FileOperations.CreateDirectory("dll-hijacks");
-                    string fileName = $"{Path.GetFileName(peAnalyzer.SelectedBinaryPath)}-{module}.cpp";
-                    using (StreamWriter sw = File.CreateText($"dll-hijacks\\{fileName}"))
-                    {
-                        sw.WriteLine($"// MD5 Binary: {peAnalyzer.GetMD5()}");
-                        sw.WriteLine($"// SHA1 Binary: {peAnalyzer.GetSHA1()}");
-                        sw.WriteLine($"// SHA256 Binary: {peAnalyzer.GetSHA256()}");
-                        sw.WriteLine(cppCode);
-                    }
-                    Thread.Sleep(2000);
+                    ButtonGenerateClassicDLL.IsEnabled = true;
+                    TargetedDLL.Text = SelectedDLL;
                 }
-            });
-        }
-
-        private async Task TestingImportedFunctions(string module)
-        {
-            List<string> importedFunctions = peAnalyzer.GetImportedFunctions(module);
-            List<string> functionsToTest = new List<string>();
-            foreach (string importedFunc in importedFunctions)
-            {
-                if (!isScanStarted) { break; }
-
-                // Display PE informations, create directories and import files from the import/ directory to the output/ dir.
-                DisplayPEFileInformations();
-                FileOperations.RecreateDirectories(new List<string> { "output/", "C:\\DLLirant\\" });
-                FileOperations.CopyFilesDirToDir("import/", "output/", new List<string> { module });
-
-                uiContext.Send(x => data.Logs.Add($"Testing {module}..."), null);
-                functionsToTest.Add($"extern \"C\" __declspec(dllexport) void {importedFunc}() {{ Main(); }}");
-                foreach (string function in functionsToTest)
-                {
-                    uiContext.Send(x => data.Logs.Add(function), null);
-                }
-                uiContext.Send(x => data.Logs.Add("=========================="), null);
-
-                await Task.Run(() =>
-                {
-                    string cppCode = codeGenerator.GenerateDLL(string.Empty, functionsToTest);
-                    FileOperations.CopyFileToDir(peAnalyzer.SelectedBinaryPath, "output/");
-                    FileOperations.RenameFile("output/DLLirantDLL.dll", $"output/{module}");
-                    bool isDllHijackingFound = codeGenerator.StartExecutable(Path.GetFileName(peAnalyzer.SelectedBinaryPath));
-                    if (isDllHijackingFound)
-                    {
-                        uiContext.Send(x => data.Logs.Add($"[+] DLL Search Order Hijacking found in the binary {Path.GetFileName(peAnalyzer.SelectedBinaryPath)} with the DLL {module} !"), null);
-                        FileOperations.CreateDirectory("dll-hijacks");
-                        string fileName = $"{Path.GetFileName(peAnalyzer.SelectedBinaryPath)}-{module}.cpp";
-                        using (StreamWriter sw = File.CreateText($"dll-hijacks\\{fileName}"))
-                        {
-                            sw.WriteLine($"// MD5 Binary: {peAnalyzer.GetMD5()}");
-                            sw.WriteLine($"// SHA1 Binary: {peAnalyzer.GetSHA1()}");
-                            sw.WriteLine($"// SHA256 Binary: {peAnalyzer.GetSHA256()}");
-                            sw.WriteLine(cppCode);
-                        }
-                        Thread.Sleep(2000);
-                    }
-                });
             }
         }
 
-        private async Task TestingNameNotFoundLiveDebugging()
+        private async void GenerateClassicDLL_Button_Click(object sender, RoutedEventArgs e)
         {
-            DisplayPEFileInformations();
-            uiContext.Send(x => data.Logs.Add($"Starting the original pefile to find NAME_NOT_FOUND dll search order hijackings (click on STOP to terminate the test)..."), null);
-            
-            await Task.Run(() =>
+            Button button = (Button)sender;
+            button.Content = "Generating...";
+            button.IsEnabled = false;
+
+            PeFile peFile = new PeFile(SelectedDLL);
+
+            FileOperations.RecreateDirectories(new List<string> { "output/" });
+
+            List<string> exportedFunctions = new List<string>();
+            string proxyPath = "proxy";
+            if (TextBoxPathProxyDLL.Text.Length > 0)
             {
-                codeGenerator.StartingTraceEventSession(peAnalyzer, uiContext, data);
+                proxyPath = TextBoxPathProxyDLL.Text.Replace(".dll", string.Empty);
+            }
+            foreach (PeNet.Header.Pe.ExportFunction func in peFile.ExportedFunctions)
+            {
+                exportedFunctions.Add($"#pragma comment(linker,\"/export:{func.Name}={proxyPath}.{func.Name},@{func.Ordinal}\")");
+            }
+            await Task.Run(() => {
+                CodeGenerator.GenerateDLL("Main();", exportedFunctions);
+
+                ExecuteCommandHelper executeCommandHelper = new ExecuteCommandHelper();
+                executeCommandHelper.ExecuteCommand("cmd.exe", "/C clang++.exe dllmain.cpp -o DLLirantDLL.dll -shared");
             });
+
+            if (proxyPath.StartsWith("C:"))
+            {
+                FileOperations.RenameFile("output/DLLirantDLL.dll", $"output/{Path.GetFileName(SelectedDLL)}");
+            }
+            else
+            {
+                FileOperations.CopyFileToDir(SelectedDLL, "output/");
+                FileOperations.RenameFile($"output/{Path.GetFileName(SelectedDLL)}", $"output/{proxyPath}.dll");
+                FileOperations.RenameFile("output/DLLirantDLL.dll", $"output/{Path.GetFileName(SelectedDLL)}");
+            }
+
+            button.Content = "Success!";
+            await Task.Run(() => { Thread.Sleep(2000); });
+            button.Content = "Generate";
+            button.IsEnabled = true;
+        }
+
+        private async void GenerateOrdinalBasedDLL_Button_Click(object sender, RoutedEventArgs e)
+        {
+            Button button = (Button)sender;
+            button.Content = "Generating...";
+            button.IsEnabled = false;
+
+            FileOperations.RecreateDirectories(new List<string> { "output/" });
+
+            List<string> exportedFunctions = new List<string>();
+            for (int i = 0; i < sliderValue.Value; i++)
+            {
+                exportedFunctions.Add($"extern \"C\" __declspec(dllexport) void DLLIrant{i}() {{ Main({i}); }};");
+            }
+
+            await Task.Run(() => {
+                CodeGenerator.GenerateDLL(string.Empty, exportedFunctions, CodeGenerator.TypeDLLHijacking.OrdinalBased);
+
+                ExecuteCommandHelper executeCommandHelper = new ExecuteCommandHelper();
+                executeCommandHelper.ExecuteCommand("cmd.exe", "/C clang++.exe dllmain.cpp -o DLLirantDLL.dll -shared");
+            });
+
+            string dllName = TextBoxOrdinalDLLName.Text;
+            if (dllName.Length > 0)
+            {
+                if (!dllName.EndsWith(".dll"))
+                {
+                    dllName = $"{dllName}.dll";
+                }
+                FileOperations.RenameFile("output/DLLirantDLL.dll", $"output/{dllName}");
+            }
+            button.Content = "Success!";
+            await Task.Run(() => { Thread.Sleep(2000); });
+            button.Content = "Generate";
+            button.IsEnabled = true;
         }
     }
 }

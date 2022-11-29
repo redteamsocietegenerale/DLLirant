@@ -2,49 +2,74 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace DLLirant.NET
+namespace DLLirant
 {
-    public class DataContextViewModel : INotifyPropertyChanged
+    internal class DataContextViewModel : INotifyPropertyChanged
     {
         public DataContextViewModel()
         {
-            logs = new ObservableCollection<string>();
-            logs.Add("test1");
-            logs.Add("test2");
-            logs.Add("test3");
-            logs.Add("test4");
-            logs.Add("test5");
-            logs.Add("test6");
+            logsgrid1 = new ObservableCollection<string>
+            {
+                "grid1 test1",
+                "grid1 test2",
+                "grid1 test3",
+                "grid1 test4",
+                "grid1 test5",
+                "grid1 test6"
+            };
 
-            excludesDlls = new ObservableCollection<string>();
-            excludesDlls.Add("api-ms");
-            excludesDlls.Add("ext-ms");
-            excludesDlls.Add("ntdll");
-            excludesDlls.Add("kernel32");
-            excludesDlls.Add("user32");
-            excludesDlls.Add("shell32");
-            excludesDlls.Add("comctl32");
-            excludesDlls.Add("imm32");
-            excludesDlls.Add("gdi32");
-            excludesDlls.Add("msvcr");
-            excludesDlls.Add("ws2_32");
-            excludesDlls.Add("ole32");
-            excludesDlls.Add("ninput");
-            excludesDlls.Add("setupapi");
-            excludesDlls.Add("mscoree");
-            excludesDlls.Add("msvcp_win");
-            excludesDlls.Add("oleaut32");
-            excludesDlls.Add("advapi32");
-            excludesDlls.Add("crypt32");
+            logsgrid2 = new ObservableCollection<string>
+            {
+                "grid2 test1",
+                "grid2 test2",
+                "grid2 test3",
+                "grid2 test4",
+                "grid2 test5",
+                "grid2 test6"
+            };
+
+            excludesDlls = new ObservableCollection<string>
+            {
+                "api-ms",
+                "ext-ms",
+                "ntdll",
+                "kernel32",
+                "user32",
+                "shell32",
+                "comctl32",
+                "imm32",
+                "gdi32",
+                "msvcr",
+                "ws2_32",
+                "ole32",
+                "ninput",
+                "setupapi",
+                "mscoree",
+                "msvcp_win",
+                "oleaut32",
+                "advapi32",
+                "crypt32"
+            };
         }
 
-        private ObservableCollection<string> logs;
-        public ObservableCollection<string> Logs
+        private ObservableCollection<string> logsgrid1;
+        public ObservableCollection<string> LogsGrid1
         {
-            get { return logs; }
+            get { return logsgrid1; }
             set
             {
-                logs = value;
+                logsgrid1 = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private ObservableCollection<string> logsgrid2;
+        public ObservableCollection<string> LogsGrid2
+        {
+            get { return logsgrid2; }
+            set
+            {
+                logsgrid2 = value;
                 OnPropertyChanged();
             }
         }

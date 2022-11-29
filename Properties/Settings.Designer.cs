@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DLLirant.NET.Properties
+namespace DLLirant.Properties
 {
 
 

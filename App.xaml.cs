@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace DLLirant.NET
+namespace DLLirant
 {
     /// <summary>
     /// Logique d'interaction pour App.xaml
