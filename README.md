@@ -5,15 +5,18 @@ DLLirant is a tool to automatize the DLL Hijacking and DLL Proxying researches o
 ![alt text](https://raw.githubusercontent.com/redteamsocietegenerale/DLLirant/main/screenshot.png)
 ![alt text](https://raw.githubusercontent.com/redteamsocietegenerale/DLLirant/main/screenshot2.png)
 ![alt text](https://raw.githubusercontent.com/redteamsocietegenerale/DLLirant/main/screenshot3.png)
+
+* Final PoC output when a DLL Hijacking is found:
+
 ![alt text](https://raw.githubusercontent.com/redteamsocietegenerale/DLLirant/main/screenshot4.png)
 
-## Live Demo
+## Old Live Demo (similar to the new version)
 
 ![alt text](https://raw.githubusercontent.com/redteamsocietegenerale/DLLirant/main/live.gif)
 
 ## How to install
 
-* Install LLVM for Windows: https://llvm.org/builds/
+* Install LLVM for Windows x64 (LLVM-version-win64.exe): https://github.com/llvm/llvm-project/releases
 * Do not forget to check the "Add LLVM to the system PATH for current user" during the installation.
 
 ## How to use
@@ -38,9 +41,9 @@ The script will create an output directory in the same directory of DLLirant, co
 
 Via the PeNet library, the script will extract the dll names required by the binary, and test each imports functions available one by one by compilate a custom DLL with the required exported functions.
 
-If a function required by the binary is executed, the custom DLL will create a `C:\DLLirant\output.txt` file and display a MessageBox to be sure that a DLL Hijacking is possible.
+If a function required by the binary is executed, the custom DLL will create a `C:\DLLirant\output.txt` to be sure that a DLL Hijacking is possible.
 
-A `DLLirant-results.txt` will be also created in the DLLirant directory with all potential DLL Hijacking available.
+The PoCs of the DLL Hijackings will be also created in the DLLirant/dll-hijacks directory.
 
 ## Technical posts (in French)
 
